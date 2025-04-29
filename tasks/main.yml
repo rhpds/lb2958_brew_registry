@@ -1,0 +1,41 @@
+---
+- name: Get pull-secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: secret
+    name: pull-secret
+    namespace: openshift-config
+  register: _r_pull_secret
+
+- name: Save pull secret in var 
+  ansible.builtin.set_fact:
+    fetch_ocp_dockerconfigjson: |
+      {{ _r_pull_secret.resources.0 |
+          community.general.json_query(_query) |
+          b64decode 
+        }}  
+  vars:
+    _query: 'data.".dockerconfigjson"'
+
+- name: Copy .dockerconfigjson content
+  ansible.builtin.copy:
+    content: "{{ fetch_ocp_dockerconfigjson }}" 
+    dest: /tmp/temp_authfile
+
+- name: Podman login to registry
+  ansible.builtin.command: >-
+    podman login --authfile /tmp/temp_authfile
+    --username "{{ podman_username }}" 
+    --password "{{ podman_password }}" 
+    "{{ podman_registry }}" 
+
+- name: Insert brew registry auth
+  command: >-
+    oc set data secret/pull-secret 
+    -n openshift-config
+    --from-file=.dockerconfigjson=/tmp/temp_authfile
+
+- name: Create the ICSP
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'icsp.yml.j2') }}"

@@ -1,0 +1,8 @@
+galaxy_info:
+  author: Mitesh The Mouse <mitsharm@redhat.com>
+  description: Setup brew registry auth in openshift
+  company: Red Hat
+  license: GPLv3
+  min_ansible_version: "2.1"
+  galaxy_tags: []
+dependencies: []
