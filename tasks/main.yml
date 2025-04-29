@@ -25,15 +25,20 @@
 - name: Podman login to registry
   ansible.builtin.command: >-
     podman login --authfile /tmp/temp_authfile
-    --username "{{ podman_username }}" 
-    --password "{{ podman_password }}" 
-    "{{ podman_registry }}" 
+    --username "{{brew_registry_username }}" 
+    --password "{{ brew_registry_password }}" 
+    "{{ brew_registry }}" 
 
 - name: Insert brew registry auth
-  command: >-
+  ansible.builtin.command: >-
     oc set data secret/pull-secret 
     -n openshift-config
     --from-file=.dockerconfigjson=/tmp/temp_authfile
+
+- name: Remove temp authfile
+  ansible.builtin.file:
+    path: /tmp/temp_authfile
+    state: absent
 
 - name: Create the ICSP
   kubernetes.core.k8s:

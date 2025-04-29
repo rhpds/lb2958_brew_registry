@@ -1,0 +1,4 @@
+---
+brew_registry_username: <CHANGEME>
+brew_registry_password: <CHANGEME>
+brew_registry: brew.registry.redhat.io
